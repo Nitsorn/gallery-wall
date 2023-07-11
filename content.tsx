@@ -11,32 +11,57 @@ export const getStyle = () => {
 function Settings() {
   const [wallColor, setWallColor] = useState("#a0aec0")
   const [frameColor, setFrameColor] = useState("#000000")
+  const [countPerRow, setCountPerRow] = useState(6)
+  const [frameWidth, setFrameWidth] = useState(5)
 
   const draw = useCallback(() => {
     if (document.querySelector('main') === null) return;
 
-    document.querySelector('main').setAttribute('style', `background: var(--gw-wall-color);`)
+    const pathname = window.location.pathname;
 
-    const gridContainer = document.querySelector('.grid.w-full.gap-4');
-    gridContainer.setAttribute('style', `grid-template-columns: repeat(6, minmax(0, 1fr)) !important;`)
+    const supportWallColor = 
+      pathname.includes('posters-prints') ||
+      pathname.includes('new-in') ||
+      pathname.includes('wishlist') ||
+      pathname.includes('canvas') ||
+      pathname.includes('frames') ||
+      pathname.includes('home');
 
-    document.querySelectorAll('section').forEach((section) => {
-      console.log('section', section);
-      
-      section.parentElement.setAttribute('style', `background: var(--gw-wall-color);`)
-      const articles = section.querySelectorAll('article div.absolute');
-      articles.forEach((article) => {
-        article.setAttribute('style', `border: 5px solid var(--gw-frame-color); box-shadow: 4px 4px 5px 0px rgba(0,0,0,0.5); ${article.getAttribute('style')}`);
-      })
-    });
+    const supportFrameColor =
+       pathname.includes('posters-prints') ||
+       pathname.includes('new-in') ||
+      pathname.includes('wishlist');
+    
+    if (supportWallColor) {
+      document.querySelector('main').setAttribute('style', `background: var(--gw-wall-color);`)
+      const gridContainer = document.querySelector('.grid.w-full.gap-4');
+      gridContainer.setAttribute('style', `grid-template-columns: repeat(var(--gw-count-per-row), minmax(0, 1fr)) !important;`)
+
+      document.querySelectorAll('section').forEach((section) => {
+        
+        section.parentElement.setAttribute('style', `background: var(--gw-wall-color);`)
+        const articles = section.querySelectorAll('article div.absolute');
+
+        articles.forEach((article) => {
+          article.setAttribute('style', `${ supportFrameColor ? 'border: var(--gw-frame-width) solid var(--gw-frame-color);' : ''} box-shadow: 4px 4px 5px 0px rgba(0,0,0,0.5); ${article.getAttribute('style')}`);
+        })
+      });
+    }
+
+   
+
   }, []);
 
   const paint = useCallback(({
     wallColor,
     frameColor,
+    countPerRow,
+    frameWidth,
   }) => {
     document.documentElement.style.setProperty('--gw-wall-color', wallColor);
     document.documentElement.style.setProperty('--gw-frame-color', frameColor);
+    document.documentElement.style.setProperty('--gw-count-per-row', countPerRow.toString());
+    document.documentElement.style.setProperty('--gw-frame-width', `${frameWidth.toString()}px`);
   }, []);
 
   
@@ -74,8 +99,10 @@ function Settings() {
     paint({
       wallColor,
       frameColor,
+      countPerRow,
+      frameWidth,
     });
-  }, [wallColor, frameColor]);
+  }, [wallColor, frameColor, countPerRow, frameWidth]);
 
     
   // repaint when color changes
@@ -83,8 +110,10 @@ function Settings() {
     paint({
       wallColor,
       frameColor,
+      countPerRow,
+      frameWidth,
     });
-  }, [wallColor, frameColor]);
+  }, [wallColor, frameColor, countPerRow, frameWidth]);
   
 
   return (
@@ -108,6 +137,26 @@ function Settings() {
             onChange={(e) => setFrameColor(e.target.value)}
           />
         </div>
+
+        <div className="flex flex-row justify-between items-center gap-5">
+          <h4>Frame width</h4>
+          <input
+            type="number"
+            className="text-right"
+            value={frameWidth}
+            onChange={(e) => setFrameWidth(Number(e.target.value))}
+          />
+        </div>
+
+        <div className="flex flex-row justify-between items-center gap-5">
+          <h4>Count per row</h4>
+          <input
+            type="number"
+            className="text-right"
+            value={countPerRow}
+            onChange={(e) => setCountPerRow(Number(e.target.value))}
+          />
+        </div>
       </div>
     </div>
   )
@@ -116,7 +165,7 @@ function Settings() {
 export default Settings
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://desenio.ca/posters-prints/*", "https://desenio.com/*"],
+  matches: ["https://desenio.ca/*", "https://desenio.com/*"],
   all_frames: true,
 }
 
