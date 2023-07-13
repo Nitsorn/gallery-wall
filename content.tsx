@@ -9,10 +9,11 @@ export const getStyle = () => {
 }
 
 function Settings() {
+  const [isVisible, setIsVisible] = useState(true);
 
   const [wallColor, setWallColor] = useState(localStorage.getItem('wallColor') || "#e3e3e3")
   const [frameColor, setFrameColor] = useState(localStorage.getItem('frameColor') || "#000000")
-  const [countPerRow, setCountPerRow] = useState(localStorage.getItem('countPerRow') || 4)
+  const [countPerRow, setCountPerRow] = useState(Number(localStorage.getItem('countPerRow')) || 4)
   const [frameWidth, setFrameWidth] = useState(Number(localStorage.getItem('frameWidth')) || 5)
 
   console.log(wallColor, frameColor, countPerRow, frameWidth);
@@ -25,6 +26,7 @@ function Settings() {
 
     const supportWallColor = 
       pathname.includes('posters-prints') ||
+      pathname.includes('poster') ||
       pathname.includes('new-in') ||
       pathname.includes('wishlist') ||
       pathname.includes('special-offer') ||
@@ -34,6 +36,7 @@ function Settings() {
 
     const supportFrameColor =
        pathname.includes('posters-prints') ||
+       pathname.includes('poster') ||
        pathname.includes('new-in') ||
        pathname.includes('special-offer') ||
       pathname.includes('wishlist');
@@ -51,17 +54,28 @@ function Settings() {
         }
       }
     }
-    
+
+    const applyFullWidth = (element) => {
+      if (!element) return;
+      element.setAttribute('style', `max-width: 100% !important;`);
+    }
+
     if (supportWallColor) {
       applyWallColor(document.querySelector('header[role="banner"]'))
       applyWallColor(document.querySelector('main'))
+      
+      // make it full width
+      applyFullWidth(document.querySelector('main > div'));
+      applyFullWidth(document.querySelector('.max-w-5xl'));
 
       // for product detail view
-      if (document.querySelector('main').querySelector('div.bg-brand-300') !== null) {
-        applyWallColor(document.querySelector('main').querySelector('div.bg-brand-300'))
-        
+      const productHero = document.querySelector('main').querySelector('div.bg-brand-300');
+      console.log(productHero);
 
-        document.querySelector('main').querySelector('div.bg-brand-300').querySelectorAll('a > span > img').forEach(img => {
+      if (productHero != null) {
+        applyWallColor(productHero)
+        
+        productHero.querySelectorAll('a > span > img').forEach(img => {
           applyFrameColorAndShadow(img);
         });
       }
@@ -157,14 +171,27 @@ function Settings() {
     });
   }, [wallColor, frameColor, countPerRow, frameWidth]);
   
+  if (!isVisible) return (
+    <div className="fixed bottom-5 right-5 z-50">
+      <button onClick={() => setIsVisible(true)} className=" bg-white px-4 py-2 border-2 border-black rounded-full text-sm cursor-pointer text-black font-semibold hover:underline">
+        🎨 Show settings 
+      </button>
+    </div>
+  )
 
   return (
-    <div className="fixed top-5 left-5">
-      <div className="bg-white rounded-md p-5 shadow-md flex flex-col gap-3">
-        <h2 className=" text-xl font-semibold">Settings</h2>
-        <div className="flex flex-row justify-between items-center gap-5">
+    <div className="fixed bottom-5 right-5 z-50">
+      <div className="relative bg-white border-2 border-black rounded-md p-5 shadow-xl flex flex-col gap-3">
+        <div className="absolute top-1 right-1">
+          <button onClick={() => setIsVisible(false)} className="underline text-sm cursor-pointer text-gray-500 hover:text-black">
+            - Hide
+          </button>
+        </div>
+        <h2 className=" text-xl font-semibold">Gallery Wall Settings</h2>
+        <div className="flex flex-row justify-between items-center gap-3">
           <h4>Wall color</h4>
           <input
+            className="rounded-xl w-6"
             type="color"
             value={wallColor}
             onChange={(e) => {
@@ -174,9 +201,10 @@ function Settings() {
           />
         </div>
 
-        <div className="flex flex-row justify-between items-center gap-5">
+        <div className="flex flex-row justify-between items-center gap-3">
           <h4>Frame color</h4>
           <input
+            className="rounded-xl w-6"
             type="color"
             value={frameColor}
             onChange={(e) => {
@@ -186,30 +214,50 @@ function Settings() {
           />
         </div>
 
-        <div className="flex flex-row justify-between items-center gap-5">
+        <div className="flex flex-row justify-between items-center gap-3">
           <h4>Frame width</h4>
-          <input
-            type="number"
-            className="text-right"
-            value={frameWidth}
-            onChange={(e) => {
-              setFrameWidth(Number(e.target.value))
-              localStorage.setItem('frameWidth', e.target.value)
-            }}
-          />
+          <div className="flex flex-row items-center gap-2">
+            <button 
+              disabled={frameWidth <= 0}
+              className="p-2 rounded-full bg-gray-200"
+              onClick={() => {
+                setFrameWidth(frameWidth - 1)
+                localStorage.setItem('frameWidth', `${frameWidth - 1}`)
+              }}
+            >-</button>
+            <div>{frameWidth}</div>
+            <button
+              disabled={frameWidth >= 20}
+              className="p-2 rounded-full bg-gray-200"
+              onClick={() => {
+                setFrameWidth(frameWidth + 1)
+                localStorage.setItem('frameWidth', `${frameWidth + 1}`)
+              }}
+            >+</button>
+          </div>
         </div>
 
-        <div className="flex flex-row justify-between items-center gap-5">
+        <div className="flex flex-row justify-between items-center gap-3">
           <h4>Count per row</h4>
-          <input
-            type="number"
-            className="text-right"
-            value={countPerRow}
-            onChange={(e) => {
-              setCountPerRow(Number(e.target.value))
-              localStorage.setItem('countPerRow', e.target.value)
-            }}
-          />
+          <div className="flex flex-row items-center gap-2">
+            <button 
+              disabled={countPerRow <= 0}
+              className="p-2 rounded-full bg-gray-200"
+              onClick={() => {
+                setCountPerRow(countPerRow - 1)
+                localStorage.setItem('countPerRow', `${countPerRow - 1}`)
+              }}
+            >-</button>
+            <div>{countPerRow}</div>
+            <button
+              disabled={countPerRow >= 10}
+              className="p-2 rounded-full bg-gray-200"
+              onClick={() => {
+                setCountPerRow(countPerRow + 1)
+                localStorage.setItem('countPerRow', `${countPerRow + 1}`)
+              }}
+            >+</button>
+          </div>
         </div>
       </div>
     </div>
@@ -219,7 +267,7 @@ function Settings() {
 export default Settings
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://desenio.ca/*", "https://desenio.com/*"],
+  matches: ["https://desenio.ca/*", "https://desenio.com/*", "https://desenio.eu/*", "https://desenio.co.uk/*"],
   all_frames: true,
 }
 
