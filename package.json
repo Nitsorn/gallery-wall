@@ -30,7 +30,10 @@
   },
   "manifest": {
     "host_permissions": [
-      "https://*/*"
+      "https://desenio.ca/*",
+      "https://desenio.com/*",
+      "https://desenio.eu/*",
+      "https://desenio.co.uk/*"
     ],
     "permissions": [
       "activeTab"
